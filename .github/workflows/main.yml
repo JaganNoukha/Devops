@@ -39,9 +39,7 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         source: ".,!env/"
-        # --- CHANGE THIS LINE ---
-        target: "/home/${{ secrets.EC2_USERNAME }}/flask_app" # Deploy to user's home directory
-        # ------------------------
+        target: "/var/www/flask_app"
 
     - name: Restart Flask app on EC2
       uses: appleboy/ssh-action@v0.1.6
@@ -50,14 +48,15 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # --- CHANGE THIS LINE ---
-          # Navigate to the new target directory
-          cd /home/${{ secrets.EC2_USERNAME }}/flask_app
-          # ------------------------
+          cd /var/www/flask_app
 
+          # Ensure Python and pip are installed on the EC2 instance
           sudo apt update -y
           sudo apt install -y python3 python3-pip
-          pip install Flask
+
+          # Install Flask and Gunicorn on the EC2 instance
+          pip install Flask gunicorn
+
           echo "Attempting to stop flask-app service..."
           sudo systemctl stop flask-app || true
           echo "Reloading systemd daemon..."
